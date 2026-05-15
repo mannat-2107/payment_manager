@@ -10,9 +10,27 @@ use Illuminate\Support\Facades\Hash;
 
 class EmployeeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $employees = Employee::with(['user', 'department'])->get();
+        $query = Employee::with(['user', 'department']);
+
+        if ($request->search) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                    ->orWhere('email', 'like', '%' . $request->search . '%');
+            })->orWhere('employee_code', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->department) {
+            $query->where('department_id', $request->department);
+        }
+
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        $employees = $query->get();
+
         return view('employees.index', compact('employees'));
     }
 

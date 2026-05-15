@@ -29,7 +29,7 @@ class SalaryStructure extends Model
 
     public function calculateDeductions()
     {
-        $pf  = ($this->basic * $this->pf_percentage) / 100;
+        $pf = ($this->basic * $this->pf_percentage) / 100;
         $esi = ($this->calculateGross() * $this->esi_percentage) / 100;
         return $pf + $esi + $this->tds;
     }
@@ -37,5 +37,9 @@ class SalaryStructure extends Model
     public function calculateNet()
     {
         return $this->calculateGross() - $this->calculateDeductions();
+    }
+    public function salaryStructures()
+    {
+        return $this->hasMany(SalaryStructure::class);
     }
 }

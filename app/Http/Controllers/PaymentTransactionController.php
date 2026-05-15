@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\PayrollRecord;
 use App\Models\PaymentTransaction;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class PaymentTransactionController extends Controller
 {
@@ -22,17 +23,17 @@ class PaymentTransactionController extends Controller
         }
 
         if ($request->search) {
-            $query->whereHas('employee.user', function($q) use ($request) {
-                $q->where('name', 'like', '%'.$request->search.'%');
-            })->orWhere('transaction_reference', 'like', '%'.$request->search.'%');
+            $query->whereHas('employee.user', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%');
+            })->orWhere('transaction_reference', 'like', '%' . $request->search . '%');
         }
 
         $transactions = $query->latest()->paginate(15);
 
-        $totalPaid       = PaymentTransaction::where('status', 'success')->sum('amount');
-        $totalPending    = PaymentTransaction::whereIn('status', ['initiated', 'processing'])->count();
-        $totalFailed     = PaymentTransaction::where('status', 'failed')->count();
-        $totalSuccess    = PaymentTransaction::where('status', 'success')->count();
+        $totalPaid    = PaymentTransaction::where('status', 'success')->sum('amount');
+        $totalPending = PaymentTransaction::whereIn('status', ['initiated', 'processing'])->count();
+        $totalFailed  = PaymentTransaction::where('status', 'failed')->count();
+        $totalSuccess = PaymentTransaction::where('status', 'success')->count();
 
         return view('transactions.index', compact(
             'transactions',
@@ -62,8 +63,7 @@ class PaymentTransactionController extends Controller
         ]);
 
         $reference = 'TXN' . strtoupper(uniqid());
-
-        $employee = Employee::find($request->employee_id);
+        $employee  = Employee::find($request->employee_id);
 
         PaymentTransaction::create([
             'employee_id'           => $request->employee_id,
@@ -98,8 +98,16 @@ class PaymentTransactionController extends Controller
 
         if ($request->status === 'success') {
             $data['paid_at'] = now();
+
             if ($transaction->payrollRecord) {
                 $transaction->payrollRecord->update(['status' => 'paid']);
+            }
+
+            try {
+                \Mail::to($transaction->employee->user->email)
+                     ->send(new \App\Mail\PaymentConfirmationMail($transaction));
+            } catch (\Exception $e) {
+                \Log::error('Payment email failed: ' . $e->getMessage());
             }
         }
 
@@ -110,7 +118,8 @@ class PaymentTransactionController extends Controller
         $transaction->update($data);
 
         return redirect()->route('transactions.index')
-                         ->with('success', 'Transaction status updated.');
+                         ->with('success', 'Transaction status updated.' .
+                                ($request->status === 'success' ? ' Email sent to employee.' : ''));
     }
 
     public function retry(PaymentTransaction $transaction)
@@ -119,12 +128,10 @@ class PaymentTransactionController extends Controller
             return back()->with('error', 'Only failed transactions can be retried.');
         }
 
-        $reference = 'TXN' . strtoupper(uniqid());
-
         PaymentTransaction::create([
             'employee_id'           => $transaction->employee_id,
             'payroll_record_id'     => $transaction->payroll_record_id,
-            'transaction_reference' => $reference,
+            'transaction_reference' => 'TXN' . strtoupper(uniqid()),
             'amount'                => $transaction->amount,
             'payment_method'        => $transaction->payment_method,
             'status'                => 'initiated',
@@ -136,5 +143,68 @@ class PaymentTransactionController extends Controller
 
         return redirect()->route('transactions.index')
                          ->with('success', 'Transaction retried successfully.');
+    }
+
+    public function receipt(PaymentTransaction $transaction)
+    {
+        $transaction->load(['employee.user', 'employee.department', 'payrollRecord']);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+            'transactions.receipt',
+            compact('transaction')
+        );
+
+        return $pdf->download('receipt-' . $transaction->transaction_reference . '.pdf');
+    }
+
+    public function bulkPay(Request $request)
+    {
+        $approvedPayrolls = PayrollRecord::where('status', 'approved')
+                                          ->with('employee')
+                                          ->get();
+
+        if ($approvedPayrolls->isEmpty()) {
+            return redirect()->route('transactions.index')
+                             ->with('error', 'No approved payrolls found.');
+        }
+
+        $count = 0;
+
+        foreach ($approvedPayrolls as $payroll) {
+            $txn = PaymentTransaction::create([
+                'employee_id'           => $payroll->employee_id,
+                'payroll_record_id'     => $payroll->id,
+                'transaction_reference' => 'TXN' . strtoupper(uniqid()),
+                'amount'                => $payroll->net_salary,
+                'payment_method'        => 'bank_transfer',
+                'status'                => 'success',
+                'bank_name'             => $payroll->employee->bank_name,
+                'account_number'        => $payroll->employee->account_number,
+                'ifsc_code'             => $payroll->employee->ifsc_code,
+                'remarks'               => 'Bulk payment — ' . Carbon::create()->month($payroll->month)->format('F') . ' ' . $payroll->year,
+                'paid_at'               => now(),
+            ]);
+
+            $payroll->update(['status' => 'paid']);
+
+            try {
+                \Mail::to($payroll->employee->user->email)
+                     ->send(new \App\Mail\PaymentConfirmationMail($txn));
+            } catch (\Exception $e) {
+                \Log::error('Bulk payment email failed: ' . $e->getMessage());
+            }
+
+            $count++;
+        }
+
+        return redirect()->route('transactions.index')
+                         ->with('success', $count . ' payments processed successfully.');
+    }
+
+    public function destroy(PaymentTransaction $transaction)
+    {
+        $transaction->delete();
+        return redirect()->route('transactions.index')
+                         ->with('success', 'Transaction deleted.');
     }
 }
