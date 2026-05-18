@@ -6,28 +6,30 @@ use App\Models\Employee;
 use App\Models\PayrollRecord;
 use App\Models\PaymentTransaction;
 use Illuminate\Support\Facades\Auth;
+use App\Models\SalaryStructure;
+
 
 class EmployeePortalController extends Controller
 {
     public function index()
     {
-        $user     = Auth::user();
+        $user = Auth::user();
         $employee = Employee::where('user_id', $user->id)
-                             ->with(['department', 'salaryStructures'])
-                             ->first();
+            ->with(['department', 'salaryStructures'])
+            ->first();
 
         if (!$employee) {
             return redirect()->route('dashboard')
-                             ->with('error', 'No employee profile found.');
+                ->with('error', 'No employee profile found for your account.');
         }
 
         $payrolls = PayrollRecord::where('employee_id', $employee->id)
-                                  ->latest()
-                                  ->get();
+            ->latest()
+            ->get();
 
         $transactions = PaymentTransaction::where('employee_id', $employee->id)
-                                           ->latest()
-                                           ->get();
+            ->latest()
+            ->get();
 
         $totalEarned = $transactions->where('status', 'success')->sum('amount');
 

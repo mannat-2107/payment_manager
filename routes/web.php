@@ -12,7 +12,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\EmployeePortalController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('landing');
 });
 
 Route::middleware([
@@ -41,5 +41,7 @@ Route::middleware([
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
 
     Route::get('my-portal', [EmployeePortalController::class, 'index'])->name('portal.index');
+
+    
 
 });
