@@ -26,4 +26,4 @@ services:
 databases:
   - name: payment-manager-db
     plan: free
-    postgresDatabase: payment_manager
+    databaseName: payment_manager
