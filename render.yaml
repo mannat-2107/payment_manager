@@ -1,12 +1,9 @@
-# Render Blueprint for automated, free Laravel deployment
+# Render Blueprint for automated, free Laravel deployment using Docker
 services:
   - type: web
     name: payment-manager
-    runtime: php
+    runtime: docker
     plan: free
-    buildCommand: composer install --no-dev --optimize-autoloader && npm install && npm run build
-    preDeployCommand: php artisan migrate --force
-    startCommand: heroku-php-apache2 public/
     envVars:
       - key: APP_ENV
         value: production
