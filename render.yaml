@@ -1,0 +1,29 @@
+# Render Blueprint for automated, free Laravel deployment
+services:
+  - type: web
+    name: payment-manager
+    runtime: php
+    plan: free
+    buildCommand: composer install --no-dev --optimize-autoloader && npm install && npm run build
+    preDeployCommand: php artisan migrate --force
+    startCommand: heroku-php-apache2 public/
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: payment-manager-db
+          property: connectionString
+      - key: LOG_CHANNEL
+        value: stderr
+
+databases:
+  - name: payment-manager-db
+    plan: free
+    postgresDatabase: payment_manager
