@@ -62,7 +62,8 @@ class EmployeeController extends Controller
 
         $user->assignRole('employee');
 
-        $code = 'EMP' . str_pad(Employee::count() + 1, 4, '0', STR_PAD_LEFT);
+        $maxId = Employee::withTrashed()->max('id') ?? 0;
+        $code = 'EMP' . str_pad($maxId + 1, 4, '0', STR_PAD_LEFT);
 
         Employee::create([
             'user_id' => $user->id,

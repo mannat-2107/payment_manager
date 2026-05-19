@@ -48,16 +48,19 @@ class SalaryStructureController extends Controller
     public function update(Request $request, SalaryStructure $salaryStructure)
     {
         $request->validate([
-            'basic'          => 'required|numeric|min:0',
-            'hra'            => 'required|numeric|min:0',
-            'allowances'     => 'required|numeric|min:0',
-            'pf_percentage'  => 'required|numeric|min:0|max:100',
-            'esi_percentage' => 'required|numeric|min:0|max:100',
-            'tds'            => 'required|numeric|min:0',
-            'effective_from' => 'required|date',
+            'basic'           => 'required|numeric|min:0',
+            'hra'             => 'required|numeric|min:0',
+            'allowances'      => 'required|numeric|min:0',
+            'pf_percentage'   => 'required|numeric|min:0|max:100',
+            'esi_percentage'  => 'required|numeric|min:0|max:100',
+            'tds'             => 'required|numeric|min:0',
+            'effective_from'  => 'required|date',
+            'revision_reason' => 'nullable|string|max:255',
         ]);
 
-        $salaryStructure->update($request->all());
+        // The SalaryStructureObserver automatically creates a SalaryRevision
+        // entry if basic/hra/allowances changed, picking up revision_reason from request().
+        $salaryStructure->update($request->except('revision_reason'));
 
         return redirect()->route('salary-structures.index')
                          ->with('success', 'Salary structure updated successfully.');

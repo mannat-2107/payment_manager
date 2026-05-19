@@ -36,4 +36,19 @@ class Employee extends Model
     {
         return $this->hasMany(SalaryStructure::class);
     }
+
+    public function leaveRequests()
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
+
+    public function salaryRevisions()
+    {
+        return $this->hasMany(SalaryRevision::class)->latest();
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(EmployeeDocument::class);
+    }
 }

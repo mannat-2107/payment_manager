@@ -207,4 +207,21 @@ class PaymentTransactionController extends Controller
         return redirect()->route('transactions.index')
                          ->with('success', 'Transaction deleted.');
     }
+
+    // Used by EMPLOYEE — checks the transaction belongs to them
+public function receiptOwn(PaymentTransaction $transaction)
+{
+    $employee = Employee::where('user_id', auth()->id())->firstOrFail();
+
+    abort_if($transaction->employee_id !== $employee->id, 403, 'This receipt does not belong to you.');
+
+    $transaction->load(['employee.user', 'employee.department', 'payrollRecord']);
+
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+        'transactions.receipt',
+        compact('transaction')
+    );
+
+    return $pdf->download('receipt-' . $transaction->transaction_reference . '.pdf');
+}
 }

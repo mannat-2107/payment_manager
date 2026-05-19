@@ -34,10 +34,10 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-4">
                             <div class="w-14 h-14 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center text-lg font-bold">
-                                {{ strtoupper(substr($transaction->employee->user->name, 0, 2)) }}
+                                {{ strtoupper(substr($transaction->employee?->user?->name ?? 'Unknown', 0, 2)) }}
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-gray-800">{{ $transaction->employee->user->name }}</h3>
+                                <h3 class="text-lg font-bold text-gray-800">{{ $transaction->employee?->user?->name ?? 'Unknown' }}</h3>
                                 <p class="text-sm text-gray-400">{{ $transaction->employee->designation }}</p>
                                 <p class="text-xs font-mono text-gray-400">{{ $transaction->employee->employee_code }}</p>
                             </div>

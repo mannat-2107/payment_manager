@@ -19,8 +19,8 @@ class EmployeePortalController extends Controller
             ->first();
 
         if (!$employee) {
-            return redirect()->route('dashboard')
-                ->with('error', 'No employee profile found for your account.');
+            return redirect()->route('profile.show')
+                ->with('error', 'No employee profile found for your account. Please contact HR.');
         }
 
         $payrolls = PayrollRecord::where('employee_id', $employee->id)

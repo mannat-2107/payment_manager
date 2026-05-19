@@ -184,9 +184,9 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold">
-                                    {{ strtoupper(substr($record->employee->user->name, 0, 2)) }}
+                                    {{ strtoupper(substr($record->employee?->user?->name ?? 'Unknown', 0, 2)) }}
                                 </div>
-                                <p class="text-sm font-semibold text-gray-800">{{ $record->employee->user->name }}</p>
+                                <p class="text-sm font-semibold text-gray-800">{{ $record->employee?->user?->name ?? 'Unknown' }}</p>
                             </div>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-500">{{ $record->employee->department->name }}</td>

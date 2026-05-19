@@ -19,10 +19,10 @@
         <div class="max-w-7xl mx-auto">
             <div class="flex items-center gap-5">
                 <div class="w-16 h-16 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-2xl font-bold flex-shrink-0">
-                    {{ strtoupper(substr($employee->user->name, 0, 2)) }}
+                    {{ strtoupper(substr($employee->user?->name ?? 'Unknown', 0, 2)) }}
                 </div>
                 <div>
-                    <h2 class="text-xl font-bold text-gray-800">{{ $employee->user->name }}</h2>
+                    <h2 class="text-xl font-bold text-gray-800">{{ $employee->user?->name ?? 'Unknown' }}</h2>
                     <p class="text-sm text-gray-500 mt-0.5">
                         {{ $employee->designation }} &bull; {{ $employee->department->name }} &bull;
                         <span class="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">{{ $employee->employee_code }}</span>
@@ -49,7 +49,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {{-- Stats --}}
-        <div class="grid grid-cols-4 gap-5 mb-8">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-5 mb-8">
             <div class="stat-card bg-white rounded-2xl border border-gray-100 p-5 ani-1">
                 <p class="text-xs font-medium text-gray-400 uppercase tracking-widest mb-2">Total Earned</p>
                 <p class="text-3xl font-bold text-green-600">₹{{ number_format($totalEarned, 0) }}</p>
@@ -72,6 +72,44 @@
                 </p>
                 <p class="text-xs text-gray-400 mt-1">Most recent month</p>
             </div>
+        </div>
+
+        {{-- Leave Quick Actions --}}
+        @php
+            $leaveEmployee = $employee;
+            $pendingLeaves  = \App\Models\LeaveRequest::where('employee_id', $leaveEmployee->id)->where('status','pending')->count();
+            $approvedLeaves = \App\Models\LeaveRequest::where('employee_id', $leaveEmployee->id)->where('status','approved')->whereYear('from_date', now()->year)->sum('days');
+        @endphp
+        <div class="flex flex-wrap gap-4 mb-8">
+            <a href="{{ route('leave.my-leaves') }}"
+                class="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl px-5 py-4 stat-card hover:border-teal-300 transition-colors group">
+                <div class="text-2xl">🌴</div>
+                <div>
+                    <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">Leave Balance</p>
+                    <p class="font-bold text-gray-800">View My Leaves
+                        @if($pendingLeaves > 0)
+                        <span class="ml-1 text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">{{ $pendingLeaves }} pending</span>
+                        @endif
+                    </p>
+                </div>
+            </a>
+            <a href="{{ route('leave.create') }}"
+                class="flex items-center gap-3 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl px-5 py-4 stat-card transition-colors">
+                <div class="text-2xl">✍️</div>
+                <div>
+                    <p class="text-xs text-teal-200 font-medium uppercase tracking-wide">New Request</p>
+                    <p class="font-bold">Apply for Leave</p>
+                </div>
+            </a>
+            @if($approvedLeaves > 0)
+            <div class="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl px-5 py-4">
+                <div class="text-2xl">📊</div>
+                <div>
+                    <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">This Year</p>
+                    <p class="font-bold text-gray-800">{{ $approvedLeaves }} days taken</p>
+                </div>
+            </div>
+            @endif
         </div>
 
         {{-- Profile and Salary Row --}}
@@ -214,7 +252,7 @@
                             @endif
                         </td>
                         <td class="px-6 py-4">
-                            <a href="{{ route('payslip.download', $payroll) }}"
+                            <a href="{{ route('payslip.download.own', $payroll) }}"
                                class="inline-flex items-center gap-1.5 text-xs bg-blue-50 border border-blue-200 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition font-medium">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -292,7 +330,7 @@
                             @endif
                         </td>
                         <td class="px-6 py-4">
-                            <a href="{{ route('transactions.receipt', $txn) }}"
+                            <a href="{{ route('transactions.receipt.own', $txn) }}"
                                class="inline-flex items-center gap-1.5 text-xs bg-purple-50 border border-purple-200 text-purple-600 px-3 py-1.5 rounded-lg hover:bg-purple-100 transition font-medium">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>

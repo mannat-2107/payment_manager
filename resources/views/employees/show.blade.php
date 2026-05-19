@@ -12,10 +12,10 @@
                 <div class="flex items-center gap-4 mb-6">
                     <div
                         class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-2xl font-bold">
-                        {{ strtoupper(substr($employee->user->name, 0, 1)) }}
+                        {{ strtoupper(substr($employee->user?->name ?? 'Unknown', 0, 1)) }}
                     </div>
                     <div>
-                        <h3 class="text-xl font-semibold">{{ $employee->user->name }}</h3>
+                        <h3 class="text-xl font-semibold">{{ $employee->user?->name ?? 'Unknown' }}</h3>
                         <p class="text-gray-500">{{ $employee->designation }}</p>
                         <span
                             class="text-xs font-mono bg-gray-100 px-2 py-1 rounded">{{ $employee->employee_code }}</span>
@@ -58,14 +58,26 @@
                     </div>
                 </div>
 
-                <div class="flex gap-3 mt-8">
+                <div class="flex flex-wrap gap-3 mt-8">
                     <a href="{{ route('employees.edit', $employee) }}"
-                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                        Edit Employee
+                        class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium">
+                        ✏️ Edit Employee
+                    </a>
+                    <a href="{{ route('employee-documents.index', $employee) }}"
+                        class="bg-teal-600 text-white px-5 py-2 rounded-lg hover:bg-teal-700 text-sm font-medium">
+                        📂 Documents
+                    </a>
+                    <a href="{{ route('salary-revisions.show', $employee) }}"
+                        class="bg-purple-600 text-white px-5 py-2 rounded-lg hover:bg-purple-700 text-sm font-medium">
+                        📈 Salary History
+                    </a>
+                    <a href="{{ route('leave.index') }}?employee={{ $employee->id }}"
+                        class="bg-amber-500 text-white px-5 py-2 rounded-lg hover:bg-amber-600 text-sm font-medium">
+                        🌴 Leave Requests
                     </a>
                     <a href="{{ route('employees.index') }}"
-                        class="bg-gray-100 text-gray-700 px-6 py-2 rounded hover:bg-gray-200">
-                        Back to List
+                        class="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-200 text-sm font-medium">
+                        ← Back to List
                     </a>
                 </div>
             </div>

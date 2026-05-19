@@ -22,7 +22,16 @@ class DashboardController extends Controller
             ->latest()->take(5)->get();
         $recentPayrolls = PayrollRecord::with('employee.user')
             ->latest()->take(5)->get();
-        $departments = Department::withCount('employees')->get();
+        
+        $departments = Department::withCount('employees')
+            ->get()
+            ->groupBy('name')
+            ->map(function ($group) {
+                $item = $group->first();
+                $item->employees_count = $group->sum('employees_count');
+                return $item;
+            })->values();
+
         $totalPF = PayrollRecord::sum('pf');
         $totalESI = PayrollRecord::sum('esi');
         $totalTDS = PayrollRecord::sum('tds');

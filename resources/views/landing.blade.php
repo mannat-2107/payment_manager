@@ -1,289 +1,390 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>PayManager — Employee Payment Platform</title>
+    <title>PayManager Engine | Next-Gen Payroll</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        outfit: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151e2e',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'grid-flow': 'gridFlow 20s linear infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        gridFlow: {
+                            '0%': { transform: 'translateY(0)' },
+                            '100%': { transform: 'translateY(50px)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Plus Jakarta Sans',sans-serif;background:#0a0a0f;color:#e8e8f0;overflow-x:hidden}
-        @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
-        @keyframes slideRight{from{width:0}to{width:100%}}
-        @keyframes countUp{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}
-        @keyframes gradientMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-        @keyframes glow{0%,100%{box-shadow:0 0 20px rgba(99,102,241,0.3)}50%{box-shadow:0 0 40px rgba(99,102,241,0.6)}}
-        .gradient-text{background:linear-gradient(135deg,#6366f1,#8b5cf6,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% 200%;animation:gradientMove 4s ease infinite}
-        .glass{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(10px)}
-        .animate-on-scroll{opacity:0;transform:translateY(30px);transition:all .6s ease}
-        .animate-on-scroll.visible{opacity:1;transform:translateY(0)}
-        .feature-card{transition:all .3s ease}
-        .feature-card:hover{transform:translateY(-4px);border-color:rgba(99,102,241,0.4);background:rgba(99,102,241,0.08)}
-        .stat-number{font-family:'JetBrains Mono',monospace;font-size:42px;font-weight:700;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-        .btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;cursor:pointer;transition:all .3s;font-weight:700;letter-spacing:-0.2px}
-        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,0.4)}
-        .btn-outline{background:transparent;color:#e8e8f0;border:1px solid rgba(255,255,255,0.2);cursor:pointer;transition:all .3s;font-weight:600}
-        .btn-outline:hover{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.4)}
-        .hero-glow{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,0.15),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
-        .nav-blur{background:rgba(10,10,15,0.8);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06)}
-        .step-line{position:absolute;top:24px;left:calc(50% + 30px);width:calc(100% - 60px);height:1px;background:linear-gradient(90deg,rgba(99,102,241,0.5),rgba(139,92,246,0.2));z-index:0}
-        .mono{font-family:'JetBrains Mono',monospace}
-        .tag{display:inline-flex;align-items:center;gap:6px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;font-family:'JetBrains Mono',monospace}
-        .scroll-indicator{animation:float 2s ease-in-out infinite}
+        body { background-color: #020617; color: #f8fafc; overflow-x: hidden; }
+        
+        .bg-grid {
+            background-size: 50px 50px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #2dd4bf, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .feature-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(45, 212, 191, 0.3);
+            box-shadow: 0 10px 40px -10px rgba(45, 212, 191, 0.2);
+        }
+
+        .btn-glow {
+            position: relative;
+        }
+        .btn-glow::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #14b8a6, #3b82f6, #8b5cf6, #14b8a6);
+            z-index: -1;
+            border-radius: 14px;
+            background-size: 400%;
+            animation: glow 20s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .btn-glow:hover::before { opacity: 1; }
+        @keyframes glow { 0% { background-position: 0 0; } 50% { background-position: 400% 0; } 100% { background-position: 0 0; } }
+
+        /* Perspective Mockup */
+        .mockup-wrapper {
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+        .mockup-inner {
+            transform: rotateX(15deg) rotateY(-15deg) rotateZ(5deg);
+            transition: transform 0.5s ease;
+        }
+        .mockup-wrapper:hover .mockup-inner {
+            transform: rotateX(5deg) rotateY(-5deg) rotateZ(2deg);
+        }
     </style>
 </head>
-<body>
+<body class="antialiased selection:bg-teal-500/30 selection:text-teal-200">
 
-{{-- Navbar --}}
-<nav class="nav-blur fixed top-0 left-0 right-0 z-50">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px">💳</div>
-            <div>
-                <div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:-0.3px">PayManager</div>
-                <div class="mono" style="font-size:9px;color:#6b6b8a">payment platform</div>
-            </div>
-        </div>
-        <div class="flex items-center gap-6">
-            <a href="#features" style="font-size:13px;font-weight:500;color:#8888aa;text-decoration:none;transition:color .2s" onmouseover="this.style.color='#e8e8f0'" onmouseout="this.style.color='#8888aa'">Features</a>
-            <a href="#how-it-works" style="font-size:13px;font-weight:500;color:#8888aa;text-decoration:none;transition:color .2s" onmouseover="this.style.color='#e8e8f0'" onmouseout="this.style.color='#8888aa'">How it works</a>
-            <a href="#stats" style="font-size:13px;font-weight:500;color:#8888aa;text-decoration:none;transition:color .2s" onmouseover="this.style.color='#e8e8f0'" onmouseout="this.style.color='#8888aa'">Stats</a>
-        </div>
-        <div class="flex items-center gap-3">
-            <a href="{{ route('login') }}" class="btn-outline" style="padding:8px 20px;border-radius:10px;font-size:13px;text-decoration:none;display:inline-block">Sign in</a>
-            <a href="{{ route('register') }}" class="btn-primary" style="padding:8px 20px;border-radius:10px;font-size:13px;text-decoration:none;display:inline-block">Get started →</a>
-        </div>
-    </div>
-</nav>
-
-{{-- Hero --}}
-<section style="min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;padding:120px 24px 80px">
-    <div class="hero-glow"></div>
-
-    {{-- Floating particles --}}
-    <div style="position:absolute;top:20%;left:10%;width:4px;height:4px;background:#6366f1;border-radius:50%;animation:float 3s ease-in-out infinite"></div>
-    <div style="position:absolute;top:60%;left:5%;width:3px;height:3px;background:#8b5cf6;border-radius:50%;animation:float 4s ease-in-out infinite .5s"></div>
-    <div style="position:absolute;top:30%;right:10%;width:5px;height:5px;background:#06b6d4;border-radius:50%;animation:float 3.5s ease-in-out infinite 1s"></div>
-    <div style="position:absolute;top:70%;right:15%;width:3px;height:3px;background:#6366f1;border-radius:50%;animation:float 2.5s ease-in-out infinite .2s"></div>
-
-    <div style="text-align:center;max-width:800px;animation:fadeUp .8s ease">
-        <div class="tag" style="margin-bottom:24px">
-            <span style="width:6px;height:6px;background:#6366f1;border-radius:50%;animation:pulse 1.5s infinite"></span>
-            v2.0 · Employee Payment Management Platform
-        </div>
-
-        <h1 style="font-size:clamp(40px,6vw,72px);font-weight:800;line-height:1.1;letter-spacing:-2px;margin-bottom:24px;color:#fff">
-            Streamline your<br>
-            <span class="gradient-text">employee payments</span><br>
-            effortlessly
-        </h1>
-
-        <p style="font-size:18px;color:#8888aa;line-height:1.7;margin-bottom:40px;max-width:560px;margin-left:auto;margin-right:auto">
-            A complete platform to manage salary structures, run payroll, track payment transactions, and generate payslips — all in one place.
-        </p>
-
-        <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:60px">
-            <a href="{{ route('register') }}" class="btn-primary" style="padding:14px 32px;border-radius:12px;font-size:15px;text-decoration:none;display:inline-block;animation:glow 3s ease-in-out infinite">
-                Start for free →
-            </a>
-            <a href="{{ route('login') }}" class="btn-outline" style="padding:14px 32px;border-radius:12px;font-size:15px;text-decoration:none;display:inline-block">
-                Sign in
-            </a>
-        </div>
-
-        {{-- Hero stats --}}
-        <div style="display:flex;align-items:center;justify-content:center;gap:40px">
-            <div style="text-align:center">
-                <div class="mono" style="font-size:24px;font-weight:700;color:#6366f1">₹0</div>
-                <div style="font-size:12px;color:#6b6b8a;margin-top:2px">Setup cost</div>
-            </div>
-            <div style="width:1px;height:40px;background:rgba(255,255,255,0.1)"></div>
-            <div style="text-align:center">
-                <div class="mono" style="font-size:24px;font-weight:700;color:#8b5cf6">100%</div>
-                <div style="font-size:12px;color:#6b6b8a;margin-top:2px">Data control</div>
-            </div>
-            <div style="width:1px;height:40px;background:rgba(255,255,255,0.1)"></div>
-            <div style="text-align:center">
-                <div class="mono" style="font-size:24px;font-weight:700;color:#06b6d4">PDF</div>
-                <div style="font-size:12px;color:#6b6b8a;margin-top:2px">Payslip export</div>
-            </div>
-        </div>
-
-        {{-- Scroll indicator --}}
-        <div class="scroll-indicator" style="margin-top:60px;display:flex;flex-direction:column;align-items:center;gap:8px">
-            <div style="font-size:11px;color:#6b6b8a;font-family:'JetBrains Mono',monospace">scroll to explore</div>
-            <div style="width:1px;height:40px;background:linear-gradient(to bottom,rgba(99,102,241,0.6),transparent)"></div>
-        </div>
-    </div>
-</section>
-
-{{-- Features --}}
-<section id="features" style="padding:100px 24px">
-    <div style="max-width:1200px;margin:0 auto">
-        <div style="text-align:center;margin-bottom:60px" class="animate-on-scroll">
-            <div class="tag" style="margin-bottom:16px">// features</div>
-            <h2 style="font-size:42px;font-weight:800;color:#fff;letter-spacing:-1px;margin-bottom:16px">Everything you need</h2>
-            <p style="font-size:16px;color:#8888aa;max-width:500px;margin:0 auto">A complete suite of tools to manage your entire employee payment lifecycle.</p>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
-
-            <div class="glass feature-card animate-on-scroll" style="border-radius:16px;padding:28px">
-                <div style="width:48px;height:48px;background:rgba(99,102,241,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:20px">👥</div>
-                <h3 style="font-size:17px;font-weight:700;color:#fff;margin-bottom:8px;letter-spacing:-0.3px">Employee Management</h3>
-                <p style="font-size:13px;color:#8888aa;line-height:1.7">Complete employee profiles with bank details, department assignment, and status tracking.</p>
-            </div>
-
-            <div class="glass feature-card animate-on-scroll" style="border-radius:16px;padding:28px">
-                <div style="width:48px;height:48px;background:rgba(139,92,246,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:20px">💰</div>
-                <h3 style="font-size:17px;font-weight:700;color:#fff;margin-bottom:8px;letter-spacing:-0.3px">Salary Structure</h3>
-                <p style="font-size:13px;color:#8888aa;line-height:1.7">Define basic, HRA, allowances with automatic PF, ESI, and TDS deduction calculations.</p>
-            </div>
-
-            <div class="glass feature-card animate-on-scroll" style="border-radius:16px;padding:28px">
-                <div style="width:48px;height:48px;background:rgba(6,182,212,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:20px">⚡</div>
-                <h3 style="font-size:17px;font-weight:700;color:#fff;margin-bottom:8px;letter-spacing:-0.3px">Payroll Engine</h3>
-                <p style="font-size:13px;color:#8888aa;line-height:1.7">Auto-calculate monthly payroll with one click. Approve, review, and mark as paid with full audit trail.</p>
-            </div>
-
-            <div class="glass feature-card animate-on-scroll" style="border-radius:16px;padding:28px">
-                <div style="width:48px;height:48px;background:rgba(16,185,129,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:20px">🔄</div>
-                <h3 style="font-size:17px;font-weight:700;color:#fff;margin-bottom:8px;letter-spacing:-0.3px">Payment Transactions</h3>
-                <p style="font-size:13px;color:#8888aa;line-height:1.7">Track every payment from initiation to completion. Bank transfer, cheque, cash — with retry on failure.</p>
-            </div>
-
-            <div class="glass feature-card animate-on-scroll" style="border-radius:16px;padding:28px">
-                <div style="width:48px;height:48px;background:rgba(245,158,11,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:20px">📄</div>
-                <h3 style="font-size:17px;font-weight:700;color:#fff;margin-bottom:8px;letter-spacing:-0.3px">PDF Payslips</h3>
-                <p style="font-size:13px;color:#8888aa;line-height:1.7">Generate and download professional payslips instantly. Email them directly to employees automatically.</p>
-            </div>
-
-            <div class="glass feature-card animate-on-scroll" style="border-radius:16px;padding:28px">
-                <div style="width:48px;height:48px;background:rgba(239,68,68,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:20px">📊</div>
-                <h3 style="font-size:17px;font-weight:700;color:#fff;margin-bottom:8px;letter-spacing:-0.3px">Reports & Analytics</h3>
-                <p style="font-size:13px;color:#8888aa;line-height:1.7">Monthly payment summaries, department-wise breakdown, deduction reports, and transaction analytics.</p>
-            </div>
-
-        </div>
-    </div>
-</section>
-
-{{-- How it works --}}
-<section id="how-it-works" style="padding:100px 24px;background:rgba(255,255,255,0.02)">
-    <div style="max-width:1000px;margin:0 auto">
-        <div style="text-align:center;margin-bottom:60px" class="animate-on-scroll">
-            <div class="tag" style="margin-bottom:16px">// how it works</div>
-            <h2 style="font-size:42px;font-weight:800;color:#fff;letter-spacing:-1px;margin-bottom:16px">Simple 4-step process</h2>
-            <p style="font-size:16px;color:#8888aa">From employee onboarding to salary payment in minutes.</p>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;position:relative">
-            @foreach([
-                ['01', 'Add Employee', 'Create employee profile with personal info and bank details.', '#6366f1'],
-                ['02', 'Set Salary', 'Configure salary structure with earnings and deductions.', '#8b5cf6'],
-                ['03', 'Run Payroll', 'Generate payroll automatically. Review and approve.', '#06b6d4'],
-                ['04', 'Pay & Track', 'Process payment and track transaction status live.', '#10b981'],
-            ] as $step)
-            <div class="animate-on-scroll" style="text-align:center">
-                <div style="width:52px;height:52px;background:rgba({{ $step[3] === '#6366f1' ? '99,102,241' : ($step[3] === '#8b5cf6' ? '139,92,246' : ($step[3] === '#06b6d4' ? '6,182,212' : '16,185,129')) }},0.15);border:1px solid rgba({{ $step[3] === '#6366f1' ? '99,102,241' : ($step[3] === '#8b5cf6' ? '139,92,246' : ($step[3] === '#06b6d4' ? '6,182,212' : '16,185,129')) }},0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:{{ $step[3] }}">
-                    {{ $step[0] }}
+    <!-- Fixed Nav -->
+    <nav class="fixed top-0 w-full z-50 glass-panel border-b-0 border-white/5">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 </div>
-                <h3 style="font-size:15px;font-weight:700;color:#fff;margin-bottom:8px;letter-spacing:-0.2px">{{ $step[1] }}</h3>
-                <p style="font-size:12px;color:#8888aa;line-height:1.7">{{ $step[2] }}</p>
+                <div>
+                    <div class="font-outfit text-xl font-black text-white tracking-tight">PAYMANAGER</div>
+                    <div class="text-[9px] text-teal-400 font-bold uppercase tracking-[0.2em] leading-none">Enterprise Engine</div>
+                </div>
             </div>
-            @endforeach
-        </div>
-    </div>
-</section>
-
-{{-- Stats --}}
-<section id="stats" style="padding:100px 24px">
-    <div style="max-width:1000px;margin:0 auto">
-        <div style="text-align:center;margin-bottom:60px" class="animate-on-scroll">
-            <div class="tag" style="margin-bottom:16px">// platform stats</div>
-            <h2 style="font-size:42px;font-weight:800;color:#fff;letter-spacing:-1px">Built for scale</h2>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px">
-            @foreach([
-                ['₹0', 'Setup Cost', 'Free to deploy'],
-                ['∞', 'Employees', 'No limits'],
-                ['PDF', 'Payslips', 'Instant download'],
-                ['100%', 'Secure', 'Your data only'],
-            ] as $stat)
-            <div class="glass animate-on-scroll" style="border-radius:16px;padding:28px;text-align:center">
-                <div class="mono" style="font-size:36px;font-weight:700;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px">{{ $stat[0] }}</div>
-                <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:4px">{{ $stat[1] }}</div>
-                <div style="font-size:12px;color:#6b6b8a">{{ $stat[2] }}</div>
+            
+            <div class="hidden md:flex items-center gap-8">
+                <a href="#platform" class="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Platform</a>
+                <a href="#features" class="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Infrastructure</a>
+                <a href="#security" class="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Security</a>
             </div>
-            @endforeach
-        </div>
-    </div>
-</section>
 
-{{-- CTA --}}
-<section style="padding:100px 24px">
-    <div style="max-width:700px;margin:0 auto;text-align:center" class="animate-on-scroll">
-        <div class="glass" style="border-radius:24px;padding:60px 40px;position:relative;overflow:hidden">
-            <div style="position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,0.2),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none"></div>
-            <div class="tag" style="margin-bottom:20px">// get started today</div>
-            <h2 style="font-size:36px;font-weight:800;color:#fff;letter-spacing:-1px;margin-bottom:16px">Ready to streamline<br>your payroll?</h2>
-            <p style="font-size:15px;color:#8888aa;margin-bottom:32px;line-height:1.7">Join companies that trust PayManager for their employee payment processing.</p>
-            <div style="display:flex;align-items:center;justify-content:center;gap:16px">
-                <a href="{{ route('register') }}" class="btn-primary" style="padding:14px 32px;border-radius:12px;font-size:15px;text-decoration:none;display:inline-block">
-                    Create account →
-                </a>
-                <a href="{{ route('login') }}" class="btn-outline" style="padding:14px 32px;border-radius:12px;font-size:15px;text-decoration:none;display:inline-block">
-                    Sign in
+            <div class="flex items-center gap-4">
+                <a href="{{ route('login') }}" class="btn-glow bg-slate-900 border border-slate-700 hover:border-teal-500/50 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                    Sign In
                 </a>
             </div>
         </div>
-    </div>
-</section>
+    </nav>
 
-{{-- Footer --}}
-<footer style="border-top:1px solid rgba(255,255,255,0.06);padding:40px 24px">
-    <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px">💳</div>
-            <span style="font-size:13px;font-weight:700;color:#fff">PayManager</span>
-            <span class="mono" style="font-size:11px;color:#6b6b8a">© {{ date('Y') }}</span>
+    <!-- Hero Section -->
+    <main class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+        
+        <!-- Animated Background Elements -->
+        <div class="absolute inset-0 z-0">
+            <div class="absolute inset-0 bg-grid opacity-20"></div>
+            <!-- Blobs -->
+            <div class="absolute top-0 left-1/4 w-96 h-96 bg-teal-500/20 rounded-full mix-blend-screen filter blur-[100px] animate-blob"></div>
+            <div class="absolute top-20 right-1/4 w-96 h-96 bg-indigo-500/20 rounded-full mix-blend-screen filter blur-[100px] animate-blob" style="animation-delay: 2s"></div>
+            <div class="absolute -bottom-32 left-1/2 w-96 h-96 bg-sky-500/20 rounded-full mix-blend-screen filter blur-[100px] animate-blob" style="animation-delay: 4s"></div>
         </div>
-        <div style="display:flex;gap:24px">
-            <a href="{{ route('login') }}" style="font-size:12px;color:#6b6b8a;text-decoration:none">Login</a>
-            <a href="{{ route('register') }}" style="font-size:12px;color:#6b6b8a;text-decoration:none">Register</a>
-            <span class="mono" style="font-size:12px;color:#6b6b8a">Built with Laravel 12</span>
+
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                
+                <!-- Left: Copy -->
+                <div class="max-w-2xl">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/50 border border-slate-700 backdrop-blur-md mb-8">
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+                        </span>
+                        <span class="text-xs font-semibold text-slate-300">PayManager v2.0 Architecture Live</span>
+                    </div>
+
+                    <h1 class="font-outfit text-5xl lg:text-7xl font-black text-white leading-[1.1] tracking-tight mb-6">
+                        Intelligent <br />
+                        <span class="text-gradient">payroll routing</span> <br />
+                        for modern teams.
+                    </h1>
+                    
+                    <p class="text-lg text-slate-400 leading-relaxed mb-10 max-w-lg font-medium">
+                        Automate complex salary structures, compliance deductions, and bulk disbursements with our high-performance computational engine.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <a href="{{ route('login') }}" class="w-full sm:w-auto px-8 py-4 bg-white text-slate-900 rounded-2xl font-bold hover:bg-slate-100 transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                            Access Portal
+                        </a>
+                        <a href="#features" class="w-full sm:w-auto px-8 py-4 glass-panel text-white rounded-2xl font-semibold hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 border border-slate-700">
+                            Explore architecture
+                        </a>
+                    </div>
+                    
+                    <div class="mt-12 flex items-center gap-6 text-sm text-slate-500 font-mono">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            99.99% Uptime
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            AES-256 Secured
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Mockup -->
+                <div class="hidden lg:block relative mockup-wrapper h-[600px] w-full">
+                    <div class="mockup-inner absolute right-0 top-10 w-[800px] glass-panel rounded-2xl border border-slate-700/50 shadow-2xl overflow-hidden bg-slate-900/90">
+                        <!-- Mockup Header -->
+                        <div class="h-12 border-b border-slate-800 flex items-center px-4 gap-2 bg-slate-900/50">
+                            <div class="flex gap-1.5">
+                                <div class="w-3 h-3 rounded-full bg-rose-500/80"></div>
+                                <div class="w-3 h-3 rounded-full bg-amber-500/80"></div>
+                                <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+                            </div>
+                            <div class="mx-auto w-48 h-6 bg-slate-800 rounded-md flex items-center justify-center text-[10px] text-slate-500 font-mono">paymanager.app/dashboard</div>
+                        </div>
+                        <!-- Mockup Content -->
+                        <div class="p-6 grid grid-cols-12 gap-6 h-[450px]">
+                            <!-- Sidebar -->
+                            <div class="col-span-3 space-y-4">
+                                <div class="h-8 bg-slate-800 rounded-lg w-3/4"></div>
+                                <div class="space-y-2 mt-8">
+                                    <div class="h-4 bg-teal-500/20 border border-teal-500/30 rounded w-full"></div>
+                                    <div class="h-4 bg-slate-800 rounded w-5/6"></div>
+                                    <div class="h-4 bg-slate-800 rounded w-4/6"></div>
+                                    <div class="h-4 bg-slate-800 rounded w-full"></div>
+                                </div>
+                            </div>
+                            <!-- Main Area -->
+                            <div class="col-span-9 space-y-6">
+                                <!-- Top Cards -->
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div class="h-24 bg-gradient-to-br from-teal-500/10 to-transparent border border-teal-500/20 rounded-xl p-4 flex flex-col justify-between">
+                                        <div class="h-3 w-1/2 bg-teal-500/40 rounded"></div>
+                                        <div class="h-6 w-3/4 bg-teal-400 rounded"></div>
+                                    </div>
+                                    <div class="h-24 bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 flex flex-col justify-between">
+                                        <div class="h-3 w-1/2 bg-slate-600 rounded"></div>
+                                        <div class="h-6 w-1/2 bg-slate-300 rounded"></div>
+                                    </div>
+                                    <div class="h-24 bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 flex flex-col justify-between">
+                                        <div class="h-3 w-1/2 bg-slate-600 rounded"></div>
+                                        <div class="h-6 w-2/3 bg-slate-300 rounded"></div>
+                                    </div>
+                                </div>
+                                <!-- Chart Area -->
+                                <div class="h-48 bg-slate-800/30 border border-slate-700/30 rounded-xl p-4 relative overflow-hidden">
+                                    <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-teal-500/20 to-transparent"></div>
+                                    <!-- Fake chart line using svg -->
+                                    <svg class="absolute bottom-0 left-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+                                        <path d="M0,100 L0,70 Q25,80 50,40 T100,20 L100,100 Z" fill="rgba(20, 184, 166, 0.1)" />
+                                        <path d="M0,70 Q25,80 50,40 T100,20" fill="none" stroke="#2dd4bf" stroke-width="2" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
-    </div>
-</footer>
+    </main>
 
-<script>
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-        }
-    });
-}, { threshold: 0.1 });
+    <!-- Metrics -->
+    <section class="border-y border-slate-800 bg-slate-900/50 relative z-20">
+        <div class="max-w-7xl mx-auto px-6 py-12">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-slate-800">
+                <div class="text-center px-4">
+                    <div class="font-outfit text-4xl font-black text-white mb-1">0ms</div>
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">Processing Lag</div>
+                </div>
+                <div class="text-center px-4">
+                    <div class="font-outfit text-4xl font-black text-white mb-1">100%</div>
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">Data Ownership</div>
+                </div>
+                <div class="text-center px-4">
+                    <div class="font-outfit text-4xl font-black text-white mb-1">&infin;</div>
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">Scalability</div>
+                </div>
+                <div class="text-center px-4">
+                    <div class="font-outfit text-4xl font-black text-teal-400 mb-1">PDF</div>
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">Native Exports</div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-document.querySelectorAll('.animate-on-scroll').forEach(el => {
-    observer.observe(el);
-});
+    <!-- Features -->
+    <section id="features" class="py-32 relative z-10">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center max-w-3xl mx-auto mb-20">
+                <h2 class="font-outfit text-4xl font-black text-white tracking-tight mb-6">Engineered for the enterprise.</h2>
+                <p class="text-lg text-slate-400">Robust architectural primitives designed to handle complex organizational structures and compliance requirements seamlessly.</p>
+            </div>
 
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    });
-});
-</script>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div class="feature-card glass-panel rounded-2xl p-8">
+                    <div class="w-12 h-12 bg-teal-500/10 rounded-xl flex items-center justify-center text-teal-400 mb-6 border border-teal-500/20">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    </div>
+                    <h3 class="font-outfit text-xl font-bold text-white mb-3">Relational Workforce DB</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Map employees to departments, roles, and salary bands. Maintain complete historical logs of all personnel changes.</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="feature-card glass-panel rounded-2xl p-8">
+                    <div class="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400 mb-6 border border-indigo-500/20">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    </div>
+                    <h3 class="font-outfit text-xl font-bold text-white mb-3">Algorithmic Computations</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Dynamic salary structures that automatically compute base, HRA, PF, and ESI based on compliance algorithms.</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="feature-card glass-panel rounded-2xl p-8">
+                    <div class="w-12 h-12 bg-sky-500/10 rounded-xl flex items-center justify-center text-sky-400 mb-6 border border-sky-500/20">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <h3 class="font-outfit text-xl font-bold text-white mb-3">Batch Processing</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Execute organizational-wide payroll runs in milliseconds. One-click approvals and lock mechanisms.</p>
+                </div>
+                
+                <!-- Card 4 -->
+                <div class="feature-card glass-panel rounded-2xl p-8">
+                    <div class="w-12 h-12 bg-rose-500/10 rounded-xl flex items-center justify-center text-rose-400 mb-6 border border-rose-500/20">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    </div>
+                    <h3 class="font-outfit text-xl font-bold text-white mb-3">Disbursement Ledger</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Track every outbound transaction. Built-in mechanisms for handling bank transfers, cash, and cheque logic.</p>
+                </div>
+
+                <!-- Card 5 -->
+                <div class="feature-card glass-panel rounded-2xl p-8">
+                    <div class="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 mb-6 border border-amber-500/20">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
+                    <h3 class="font-outfit text-xl font-bold text-white mb-3">Data Visualization</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Real-time Chart.js integrations rendering financial telemetry directly into your admin console.</p>
+                </div>
+
+                <!-- Card 6 -->
+                <div class="feature-card glass-panel rounded-2xl p-8">
+                    <div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 mb-6 border border-emerald-500/20">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    </div>
+                    <h3 class="font-outfit text-xl font-bold text-white mb-3">RBAC Security</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Strict role-based access control segregating Admin, HR, and Employee portals to prevent data leaks.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-32 relative z-10 overflow-hidden">
+        <div class="absolute inset-0 bg-teal-500/5 mix-blend-screen"></div>
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="font-outfit text-5xl font-black text-white tracking-tight mb-8">Ready to upgrade your infrastructure?</h2>
+            <p class="text-xl text-slate-400 mb-10 max-w-2xl mx-auto font-medium">Join modern organizations running their operations on PayManager Engine.</p>
+            <a href="{{ route('login') }}" class="btn-glow inline-flex bg-white text-slate-900 px-10 py-5 rounded-2xl font-black text-lg hover:bg-slate-100 transition-colors items-center gap-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                Sign In to Portal
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-950 py-12 relative z-20">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-teal-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                <span class="font-outfit font-bold text-white tracking-tight">PAYMANAGER</span>
+                <span class="text-sm text-slate-600 font-mono pl-2 border-l border-slate-800">© {{ date('Y') }}</span>
+            </div>
+            
+            <div class="flex items-center gap-8 text-sm font-semibold text-slate-500">
+                <a href="{{ route('login') }}" class="hover:text-teal-400 transition-colors">System Login</a>
+                <a href="#" class="hover:text-teal-400 transition-colors">Documentation</a>
+                <span class="font-mono text-xs bg-slate-900 px-2 py-1 rounded border border-slate-800 text-slate-400">Built with Laravel 11</span>
+            </div>
+        </div>
+    </footer>
+
 </body>
 </html>

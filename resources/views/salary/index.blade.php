@@ -86,13 +86,14 @@
                     @forelse($salaries as $salary)
                     <tr class="row-hover">
                         <td class="px-6 py-4">
-                            <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3">
+                                @php $salaryName = $salary->employee?->user?->name ?? 'Unknown'; @endphp
                                 <div class="w-9 h-9 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                                    {{ strtoupper(substr($salary->employee->user->name, 0, 2)) }}
+                                    {{ strtoupper(substr($salaryName, 0, 2)) }}
                                 </div>
                                 <div>
-                                    <p class="text-sm font-semibold text-gray-800">{{ $salary->employee->user->name }}</p>
-                                    <p class="text-xs text-gray-400 font-mono">{{ $salary->employee->employee_code }}</p>
+                                    <p class="text-sm font-semibold text-gray-800">{{ $salaryName }}</p>
+                                    <p class="text-xs text-gray-400 font-mono">{{ $salary->employee?->employee_code ?? '—' }}</p>
                                 </div>
                             </div>
                         </td>

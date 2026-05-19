@@ -11,10 +11,10 @@
 
                 <div class="flex items-center gap-4 mb-6">
                     <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-2xl font-bold">
-                        {{ strtoupper(substr($payroll->employee->user->name, 0, 1)) }}
+                        {{ strtoupper(substr($payroll->employee?->user?->name ?? 'Unknown', 0, 1)) }}
                     </div>
                     <div>
-                        <h3 class="text-xl font-semibold">{{ $payroll->employee->user->name }}</h3>
+                        <h3 class="text-xl font-semibold">{{ $payroll->employee?->user?->name ?? 'Unknown' }}</h3>
                         <p class="text-gray-500">{{ $payroll->employee->designation }}</p>
                         <p class="text-sm text-gray-400">
                             {{ DateTime::createFromFormat('!m', $payroll->month)->format('F') }}
@@ -61,6 +61,12 @@
                                 <span class="text-gray-500">TDS</span>
                                 <span class="text-red-600">₹{{ number_format($payroll->tds, 2) }}</span>
                             </div>
+                            @if($payroll->leave_deduction > 0)
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Leave Deduction ({{ $payroll->leave_days_taken }} days)</span>
+                                <span class="text-red-600">₹{{ number_format($payroll->leave_deduction, 2) }}</span>
+                            </div>
+                            @endif
                             <div class="flex justify-between font-medium border-t pt-2">
                                 <span>Total Deductions</span>
                                 <span class="text-red-600">₹{{ number_format($payroll->total_deductions, 2) }}</span>

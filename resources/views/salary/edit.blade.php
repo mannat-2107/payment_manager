@@ -60,6 +60,16 @@
                             class="w-full border rounded px-3 py-2">
                     </div>
 
+                    <div class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                        <label class="block text-sm font-semibold text-amber-800 mb-1">
+                            📝 Reason for Revision <span class="text-amber-600 font-normal text-xs">(logged in Salary History)</span>
+                        </label>
+                        <input type="text" name="revision_reason"
+                            value="{{ old('revision_reason') }}"
+                            placeholder="e.g. Annual increment, Promotion, Performance bonus..."
+                            class="w-full border border-amber-200 bg-white rounded px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 focus:border-transparent">
+                    </div>
+
                     <div class="flex gap-3">
                         <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
                             Update Salary Structure

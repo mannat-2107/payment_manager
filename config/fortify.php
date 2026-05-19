@@ -73,7 +73,7 @@ return [
     |
     */
 
-    'home' => '/dashboard',
+    'home' => '/home',
 
     /*
     |--------------------------------------------------------------------------
@@ -162,7 +162,7 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Features::registration(), // Disabled - accounts created by admin only
         Features::resetPasswords(),
         // Features::emailVerification(),
         Features::updateProfileInformation(),

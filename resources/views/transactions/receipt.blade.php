@@ -63,7 +63,7 @@
     <div class="info-grid">
         <div class="info-item">
             <label>Employee Name</label>
-            <p>{{ $transaction->employee->user->name }}</p>
+            <p>{{ $transaction->employee?->user?->name ?? 'Unknown' }}</p>
         </div>
         <div class="info-item">
             <label>Employee Code</label>

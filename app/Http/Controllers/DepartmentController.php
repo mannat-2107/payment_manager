@@ -51,8 +51,19 @@ class DepartmentController extends Controller
 
     public function destroy(Department $department)
     {
-        $department->delete();
-        return redirect()->route('departments.index')
-            ->with('success', 'Department deleted successfully.');
+        // Prevent deletion if employees are still assigned
+        if ($department->employees()->count() > 0) {
+            return redirect()->route('departments.index')
+                ->with('error', 'Cannot delete department — ' . $department->employees()->count() . ' employees are still assigned.');
+        }
+
+        try {
+            $department->delete();
+            return redirect()->route('departments.index')
+                ->with('success', 'Department deleted successfully.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->route('departments.index')
+                ->with('error', 'Cannot delete this department. It has dependent records.');
+        }
     }
 }

@@ -13,6 +13,8 @@ class PayrollRecord extends Model
         'basic',
         'hra',
         'allowances',
+        'leave_deduction',
+        'leave_days_taken',
         'gross',
         'pf',
         'esi',
