@@ -57,6 +57,8 @@ Route::middleware([
     Route::resource('payroll', PayrollController::class);
     Route::post('payroll/generate', [PayrollController::class, 'generate'])
         ->name('payroll.generate');
+    Route::post('payroll/{payroll}/pay', [PayrollController::class, 'pay'])
+        ->name('payroll.pay');
 
     Route::get('payslip/{payroll}/download', [PayslipController::class, 'download'])
         ->name('payslip.download');
@@ -65,6 +67,10 @@ Route::middleware([
 
     Route::post('transactions/bulk-pay', [PaymentTransactionController::class, 'bulkPay'])
         ->name('transactions.bulk-pay');
+    Route::get('transactions/{transaction}/checkout', [PaymentTransactionController::class, 'checkout'])
+        ->name('transactions.checkout');
+    Route::post('transactions/{transaction}/process-checkout', [PaymentTransactionController::class, 'processCheckout'])
+        ->name('transactions.process-checkout');
     Route::resource('transactions', PaymentTransactionController::class);
     Route::post('transactions/{transaction}/retry', [PaymentTransactionController::class, 'retry'])
         ->name('transactions.retry');

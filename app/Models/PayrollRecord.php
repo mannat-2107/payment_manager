@@ -28,4 +28,14 @@ class PayrollRecord extends Model
     {
         return $this->belongsTo(Employee::class);
     }
+
+    public function transactions()
+    {
+        return $this->hasMany(PaymentTransaction::class, 'payroll_record_id')->latest();
+    }
+
+    public function latestTransaction()
+    {
+        return $this->hasOne(PaymentTransaction::class, 'payroll_record_id')->latest();
+    }
 }

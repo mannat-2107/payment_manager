@@ -44,6 +44,15 @@
                 </div>
             @endif
 
+            @if(session('error'))
+                <div class="bg-rose-50 border border-rose-200 text-rose-700 px-5 py-4 rounded-xl mb-6 flex items-center gap-3 slide-in shadow-sm">
+                    <div class="p-1.5 bg-rose-100 rounded-lg">
+                        <svg class="w-5 h-5 flex-shrink-0 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <p class="font-bold text-sm">{{ session('error') }}</p>
+                </div>
+            @endif
+
             {{-- Stat Cards --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div class="stat-card group bg-white rounded-2xl border border-slate-200 p-6 ani-1 relative overflow-hidden">
@@ -239,6 +248,12 @@
                                                         <option value="reversed" {{ $txn->status == 'reversed' ? 'selected' : '' }}>Rev.</option>
                                                     </select>
                                                 </form>
+                                            @endif
+                                            @if($txn->status === 'initiated' || $txn->status === 'processing')
+                                                <a href="{{ route('transactions.checkout', $txn) }}"
+                                                   class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all hover:scale-[1.02]" title="Open Payment Gateway">
+                                                    💳 Checkout
+                                                </a>
                                             @endif
                                             @if($txn->status === 'failed')
                                                 <form method="POST" action="{{ route('transactions.retry', $txn) }}" class="inline-block">

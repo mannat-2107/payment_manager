@@ -67,7 +67,9 @@
                                     <select name="payroll_record_id" class="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-slate-700 font-medium bg-slate-50 hover:bg-white transition-colors cursor-pointer appearance-none">
                                         <option value="">No linked ledger</option>
                                         @foreach($payrollRecords as $record)
-                                            <option value="{{ $record->id }}" {{ old('payroll_record_id') == $record->id ? 'selected' : '' }}>
+                                            <option value="{{ $record->id }}" {{ old('payroll_record_id') == $record->id ? 'selected' : '' }}
+                                                data-amount="{{ $record->net_salary }}"
+                                                data-employee-id="{{ $record->employee_id }}">
                                                 {{ $record->employee?->user?->name ?? 'Unknown' }} —
                                                 {{ DateTime::createFromFormat('!m', $record->month)->format('M') }} {{ $record->year }} —
                                                 ₹{{ number_format($record->net_salary, 0) }}
@@ -147,4 +149,24 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const payrollSelect = document.querySelector('select[name="payroll_record_id"]');
+            const employeeSelect = document.querySelector('select[name="employee_id"]');
+            const amountInput = document.querySelector('input[name="amount"]');
+
+            if (payrollSelect && employeeSelect && amountInput) {
+                payrollSelect.addEventListener('change', function () {
+                    const selectedOption = payrollSelect.options[payrollSelect.selectedIndex];
+                    const amount = selectedOption.getAttribute('data-amount');
+                    const employeeId = selectedOption.getAttribute('data-employee-id');
+
+                    if (amount && employeeId) {
+                        amountInput.value = amount;
+                        employeeSelect.value = employeeId;
+                    }
+                });
+            }
+        });
+    </script>
 </x-app-layout>

@@ -18,7 +18,7 @@ class PayrollController extends Controller
 
     public function index()
     {
-        $records = PayrollRecord::with('employee.user')->latest()->get();
+        $records = PayrollRecord::with(['employee.user', 'latestTransaction'])->latest()->get();
         return view('payroll.index', compact('records'));
     }
 
@@ -70,7 +70,7 @@ class PayrollController extends Controller
 
     public function show(PayrollRecord $payroll)
     {
-        $payroll->load('employee.user');
+        $payroll->load(['employee.user', 'employee.department', 'transactions']);
         return view('payroll.show', compact('payroll'));
     }
 
@@ -84,6 +84,43 @@ class PayrollController extends Controller
 
         return redirect()->route('payroll.index')
                          ->with('success', 'Payroll status updated.');
+    }
+
+    public function pay(PayrollRecord $payroll)
+    {
+        if ($payroll->status !== 'approved') {
+            return back()->with('error', 'Only approved payroll records can be paid.');
+        }
+
+        $existingTxn = \App\Models\PaymentTransaction::where('payroll_record_id', $payroll->id)
+            ->whereIn('status', ['initiated', 'processing', 'success'])
+            ->first();
+
+        if ($existingTxn) {
+            if ($existingTxn->status === 'success') {
+                $payroll->update(['status' => 'paid']);
+                return redirect()->route('payroll.index')->with('error', 'This payroll has already been paid successfully.');
+            }
+            return redirect()->route('transactions.checkout', $existingTxn);
+        }
+
+        $reference = 'TXN' . strtoupper(uniqid());
+        $employee = $payroll->employee;
+
+        $transaction = \App\Models\PaymentTransaction::create([
+            'employee_id'           => $payroll->employee_id,
+            'payroll_record_id'     => $payroll->id,
+            'transaction_reference' => $reference,
+            'amount'                => $payroll->net_salary,
+            'payment_method'        => 'bank_transfer',
+            'status'                => 'initiated',
+            'bank_name'             => $employee->bank_name,
+            'account_number'        => $employee->account_number,
+            'ifsc_code'             => $employee->ifsc_code,
+            'remarks'               => 'Payment of payroll for ' . \Carbon\Carbon::create()->month($payroll->month)->format('F') . ' ' . $payroll->year,
+        ]);
+
+        return redirect()->route('transactions.checkout', $transaction);
     }
 
     public function destroy(PayrollRecord $payroll)

@@ -56,16 +56,44 @@ class PaymentTransactionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'employee_id'    => 'required|exists:employees,id',
-            'amount'         => 'required|numeric|min:1',
-            'payment_method' => 'required|in:bank_transfer,cheque,cash',
-            'remarks'        => 'nullable|string|max:500',
+            'employee_id'       => 'required|exists:employees,id',
+            'amount'            => 'required|numeric|min:1',
+            'payment_method'    => 'required|in:bank_transfer,cheque,cash',
+            'remarks'           => 'nullable|string|max:500',
+            'payroll_record_id' => 'nullable|exists:payroll_records,id',
         ]);
+
+        if ($request->payroll_record_id) {
+            $payroll = PayrollRecord::find($request->payroll_record_id);
+            if ($payroll) {
+                if ($payroll->status === 'paid') {
+                    return back()->with('error', 'This payroll record is already marked as paid.');
+                }
+
+                // Check if a successful transaction already exists
+                $hasSuccessTxn = PaymentTransaction::where('payroll_record_id', $payroll->id)
+                    ->where('status', 'success')
+                    ->first();
+                if ($hasSuccessTxn) {
+                    $payroll->update(['status' => 'paid']);
+                    return redirect()->route('transactions.index')->with('error', 'This payroll already has a successful transaction.');
+                }
+
+                // Redirect to existing checkout if one is active to prevent duplication
+                $existingTxn = PaymentTransaction::where('payroll_record_id', $payroll->id)
+                    ->whereIn('status', ['initiated', 'processing'])
+                    ->latest()
+                    ->first();
+                if ($existingTxn) {
+                    return redirect()->route('transactions.checkout', $existingTxn)->with('success', 'Resuming the active checkout session for this payroll.');
+                }
+            }
+        }
 
         $reference = 'TXN' . strtoupper(uniqid());
         $employee  = Employee::find($request->employee_id);
 
-        PaymentTransaction::create([
+        $transaction = PaymentTransaction::create([
             'employee_id'           => $request->employee_id,
             'payroll_record_id'     => $request->payroll_record_id ?? null,
             'transaction_reference' => $reference,
@@ -78,8 +106,50 @@ class PaymentTransactionController extends Controller
             'remarks'               => $request->remarks,
         ]);
 
-        return redirect()->route('transactions.index')
-                         ->with('success', 'Transaction initiated successfully.');
+        return redirect()->route('transactions.checkout', $transaction);
+    }
+
+    public function checkout(PaymentTransaction $transaction)
+    {
+        $transaction->load(['employee.user', 'payrollRecord']);
+        return view('transactions.checkout', compact('transaction'));
+    }
+
+    public function processCheckout(Request $request, PaymentTransaction $transaction)
+    {
+        $request->validate([
+            'simulate_status' => 'required|in:success,failed',
+            'failure_reason'  => 'nullable|string|max:255',
+        ]);
+
+        $status = $request->simulate_status;
+        $data = ['status' => $status];
+
+        if ($status === 'success') {
+            $data['paid_at'] = now();
+
+            if ($transaction->payroll_record_id) {
+                $transaction->payrollRecord->update(['status' => 'paid']);
+            }
+
+            try {
+                \Mail::to($transaction->employee->user->email)
+                     ->send(new \App\Mail\PaymentConfirmationMail($transaction));
+            } catch (\Exception $e) {
+                \Log::error('Payment email failed: ' . $e->getMessage());
+            }
+
+            $transaction->update($data);
+
+            return redirect()->route('transactions.index')
+                             ->with('success', 'Payment of ₹' . number_format($transaction->amount, 2) . ' succeeded! Linked payroll record status updated to Paid.');
+        } else {
+            $data['failure_reason'] = $request->failure_reason ?? 'Payment declined by gateway';
+            $transaction->update($data);
+
+            return redirect()->route('transactions.index')
+                             ->with('error', 'Payment failed: ' . $data['failure_reason']);
+        }
     }
 
     public function show(PaymentTransaction $transaction)
@@ -128,7 +198,29 @@ class PaymentTransactionController extends Controller
             return back()->with('error', 'Only failed transactions can be retried.');
         }
 
-        PaymentTransaction::create([
+        if ($transaction->payroll_record_id) {
+            $payroll = PayrollRecord::find($transaction->payroll_record_id);
+            if ($payroll && $payroll->status === 'paid') {
+                return back()->with('error', 'The linked payroll record has already been marked as paid.');
+            }
+
+            // Check if there is already an active or successful transaction for this payroll
+            $activeTxn = PaymentTransaction::where('payroll_record_id', $transaction->payroll_record_id)
+                ->whereIn('status', ['initiated', 'processing', 'success'])
+                ->latest()
+                ->first();
+            if ($activeTxn) {
+                if ($activeTxn->status === 'success') {
+                    if ($payroll) {
+                        $payroll->update(['status' => 'paid']);
+                    }
+                    return redirect()->route('transactions.index')->with('error', 'A successful transaction already exists for this payroll.');
+                }
+                return redirect()->route('transactions.checkout', $activeTxn)->with('success', 'Resuming the active checkout session.');
+            }
+        }
+
+        $newTxn = PaymentTransaction::create([
             'employee_id'           => $transaction->employee_id,
             'payroll_record_id'     => $transaction->payroll_record_id,
             'transaction_reference' => 'TXN' . strtoupper(uniqid()),
@@ -141,8 +233,7 @@ class PaymentTransactionController extends Controller
             'remarks'               => 'Retry of ' . $transaction->transaction_reference,
         ]);
 
-        return redirect()->route('transactions.index')
-                         ->with('success', 'Transaction retried successfully.');
+        return redirect()->route('transactions.checkout', $newTxn)->with('success', 'New retry checkout initiated.');
     }
 
     public function receipt(PaymentTransaction $transaction)
@@ -171,19 +262,45 @@ class PaymentTransactionController extends Controller
         $count = 0;
 
         foreach ($approvedPayrolls as $payroll) {
-            $txn = PaymentTransaction::create([
-                'employee_id'           => $payroll->employee_id,
-                'payroll_record_id'     => $payroll->id,
-                'transaction_reference' => 'TXN' . strtoupper(uniqid()),
-                'amount'                => $payroll->net_salary,
-                'payment_method'        => 'bank_transfer',
-                'status'                => 'success',
-                'bank_name'             => $payroll->employee->bank_name,
-                'account_number'        => $payroll->employee->account_number,
-                'ifsc_code'             => $payroll->employee->ifsc_code,
-                'remarks'               => 'Bulk payment — ' . Carbon::create()->month($payroll->month)->format('F') . ' ' . $payroll->year,
-                'paid_at'               => now(),
-            ]);
+            // Check if there is already a successful transaction
+            $hasSuccessTxn = PaymentTransaction::where('payroll_record_id', $payroll->id)
+                ->where('status', 'success')
+                ->exists();
+
+            if ($hasSuccessTxn) {
+                $payroll->update(['status' => 'paid']);
+                continue;
+            }
+
+            // Check if there is an existing initiated/processing transaction
+            $existingTxn = PaymentTransaction::where('payroll_record_id', $payroll->id)
+                ->whereIn('status', ['initiated', 'processing'])
+                ->latest()
+                ->first();
+
+            if ($existingTxn) {
+                // Update existing transaction to success instead of creating a new duplicate
+                $existingTxn->update([
+                    'status'  => 'success',
+                    'paid_at' => now(),
+                    'remarks' => $existingTxn->remarks . ' (Processed via Bulk Pay)',
+                ]);
+                $txn = $existingTxn;
+            } else {
+                $txn = PaymentTransaction::create([
+                    'employee_id'           => $payroll->employee_id,
+                    'payroll_record_id'     => $payroll->id,
+                    'transaction_reference' => 'TXN' . strtoupper(uniqid()),
+                    'amount'                => $payroll->net_salary,
+                    'payment_method'        => 'bank_transfer',
+                    'status'                => 'success',
+                    'bank_name'             => $payroll->employee->bank_name,
+                    'account_number'        => $payroll->employee->account_number,
+                    'ifsc_code'             => $payroll->employee->ifsc_code,
+                    'remarks'               => 'Bulk payment — ' . Carbon::create()->month($payroll->month)->format('F') . ' ' . $payroll->year,
+                    'paid_at'               => now(),
+                ]);
+            }
 
             $payroll->update(['status' => 'paid']);
 

@@ -29,6 +29,42 @@
                 </div>
             @endif
 
+            @if(session('error'))
+                <div class="bg-rose-50 border border-rose-200 text-rose-700 px-5 py-4 rounded-xl mb-6 flex items-center gap-3 slide-in shadow-sm">
+                    <div class="p-1.5 bg-rose-100 rounded-lg">
+                        <svg class="w-5 h-5 flex-shrink-0 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <p class="font-bold text-sm">{{ session('error') }}</p>
+                </div>
+            @endif
+
+            {{-- Workflow Guide Banner --}}
+            <div class="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-5 mb-8 border border-slate-700 shadow-lg">
+                <p class="text-xs font-bold text-teal-400 uppercase tracking-widest font-mono mb-3">💡 Payroll Payment Workflow</p>
+                <div class="flex flex-wrap items-center gap-2 text-sm font-medium">
+                    <div class="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-2 rounded-lg text-slate-300">
+                        <span class="w-6 h-6 rounded-full bg-teal-500/20 text-teal-400 text-xs font-bold flex items-center justify-center">1</span>
+                        Generate Payroll
+                    </div>
+                    <svg class="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <div class="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-2 rounded-lg text-slate-300">
+                        <span class="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center">2</span>
+                        Approve Record
+                    </div>
+                    <svg class="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <div class="flex items-center gap-2 bg-teal-500/15 border border-teal-500/30 px-3 py-2 rounded-lg text-teal-300 font-bold">
+                        <span class="w-6 h-6 rounded-full bg-teal-500/30 text-teal-300 text-xs font-bold flex items-center justify-center">3</span>
+                        💳 Pay via Gateway
+                    </div>
+                    <svg class="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <div class="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-2 rounded-lg text-slate-300">
+                        <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center justify-center">4</span>
+                        ✅ Marked Paid
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-3 font-medium">The <strong class="text-slate-400">💳 Pay via Gateway</strong> button appears in the Actions column once a payroll record is set to <span class="bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded font-mono text-[10px]">Approved</span>.</p>
+            </div>
+
             {{-- Stats --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div class="stat-card group bg-white rounded-2xl border border-slate-200 p-6 ani-1 relative overflow-hidden">
@@ -95,7 +131,8 @@
                                 <th class="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-6 py-4 border-b border-slate-100">Gross</th>
                                 <th class="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-6 py-4 border-b border-slate-100">Deductions</th>
                                 <th class="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-6 py-4 border-b border-slate-100">Net Salary</th>
-                                <th class="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-6 py-4 border-b border-slate-100">Status</th>
+                                <th class="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-6 py-4 border-b border-slate-100">Payroll Status</th>
+                                <th class="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-6 py-4 border-b border-slate-100">Payment</th>
                                 <th class="text-right text-xs font-bold text-slate-400 uppercase tracking-wider px-6 py-4 border-b border-slate-100">Actions</th>
                             </tr>
                         </thead>
@@ -152,8 +189,39 @@
                                             </span>
                                         @endif
                                     </td>
+                                    {{-- Linked Transaction Status --}}
+                                    <td class="px-6 py-5">
+                                        @php $txn = $record->latestTransaction; @endphp
+                                        @if($txn)
+                                            @if($txn->status === 'success')
+                                                <a href="{{ route('transactions.show', $txn) }}" class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs px-2.5 py-1 rounded-md font-bold hover:bg-emerald-100 transition-colors">
+                                                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> Paid ✓
+                                                </a>
+                                            @elseif($txn->status === 'initiated' || $txn->status === 'processing')
+                                                <a href="{{ route('transactions.checkout', $txn) }}" class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 border border-blue-200 text-xs px-2.5 py-1 rounded-md font-bold hover:bg-blue-100 transition-colors">
+                                                    <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span> Resume →
+                                                </a>
+                                            @elseif($txn->status === 'failed')
+                                                <a href="{{ route('transactions.show', $txn) }}" class="inline-flex items-center gap-1.5 bg-rose-50 text-rose-600 border border-rose-200 text-xs px-2.5 py-1 rounded-md font-bold hover:bg-rose-100 transition-colors">
+                                                    <span class="w-1.5 h-1.5 bg-rose-500 rounded-full"></span> Failed
+                                                </a>
+                                            @else
+                                                <span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-500 text-xs px-2.5 py-1 rounded-md font-bold border border-slate-200">{{ ucfirst($txn->status) }}</span>
+                                            @endif
+                                        @else
+                                            <span class="text-xs text-slate-400 font-medium italic">No transaction</span>
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-5">
                                         <div class="flex items-center justify-end gap-2">
+                                            @if($record->status === 'approved')
+                                                <form method="POST" action="{{ route('payroll.pay', $record) }}" class="inline-block mr-1">
+                                                    @csrf
+                                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all hover:scale-[1.02]" title="Pay via Secure Gateway">
+                                                        💳 Pay via Gateway
+                                                    </button>
+                                                </form>
+                                            @endif
                                             @if($record->status !== 'paid')
                                                 <form method="POST" action="{{ route('payroll.update', $record) }}" class="inline-block mr-2">
                                                     @csrf @method('PUT')

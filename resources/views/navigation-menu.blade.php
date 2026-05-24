@@ -67,10 +67,7 @@
                             @if($pl > 0)<span class="ml-1 text-[10px] font-bold bg-amber-500 text-white px-1.5 py-0.5 rounded-full">{{ $pl }}</span>@endif
                         </a>
 
-                        <a href="{{ route('salary-revisions.index') }}"
-                           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('salary-revisions.*') ? 'bg-teal-500/15 text-teal-400' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5' }}">
-                            Revisions
-                        </a>
+
 
 
                     @else
@@ -234,7 +231,7 @@
                 <a href="{{ route('transactions.index') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('transactions.*') ? 'bg-teal-500/20 text-teal-400' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}">Transactions</a>
                 <a href="{{ route('reports.index') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('reports.*') ? 'bg-teal-500/20 text-teal-400' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}">Reports</a>
                 <a href="{{ route('leave.index') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('leave.*') ? 'bg-teal-500/20 text-teal-400' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}">Leave</a>
-                <a href="{{ route('salary-revisions.index') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('salary-revisions.*') ? 'bg-teal-500/20 text-teal-400' : 'text-slate-300 hover:text-white hover:bg-slate-700' }}">Revisions</a>
+
 
             @else
 
