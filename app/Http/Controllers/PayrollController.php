@@ -93,14 +93,10 @@ class PayrollController extends Controller
         }
 
         $existingTxn = \App\Models\PaymentTransaction::where('payroll_record_id', $payroll->id)
-            ->whereIn('status', ['initiated', 'processing', 'success'])
+            ->whereIn('status', ['initiated', 'processing'])
             ->first();
 
         if ($existingTxn) {
-            if ($existingTxn->status === 'success') {
-                $payroll->update(['status' => 'paid']);
-                return redirect()->route('payroll.index')->with('error', 'This payroll has already been paid successfully.');
-            }
             return redirect()->route('transactions.checkout', $existingTxn);
         }
 

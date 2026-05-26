@@ -175,6 +175,46 @@
                         </div>
                     </div>
 
+                    @php
+                        $successfulTxn = $payroll->transactions->where('status', 'success')->first();
+                        $activeTxn = $payroll->transactions->whereIn('status', ['initiated', 'processing'])->first();
+                    @endphp
+
+                    @if($successfulTxn)
+                        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 flex items-start gap-4 shadow-sm">
+                            <div class="p-2 bg-emerald-100 text-emerald-700 rounded-xl flex-shrink-0 mt-0.5">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <div class="flex-1">
+                                <h5 class="text-sm font-bold text-emerald-800">Disbursement Successful</h5>
+                                <p class="text-xs text-emerald-600 mt-1 font-medium">A payment of <strong>₹{{ number_format($successfulTxn->amount, 2) }}</strong> was completed successfully on <strong>{{ $successfulTxn->paid_at ? $successfulTxn->paid_at->format('d M Y, h:i A') : 'N/A' }}</strong>.</p>
+                                <div class="flex items-center gap-4 mt-3">
+                                    <span class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-mono font-bold">REF: {{ $successfulTxn->transaction_reference }}</span>
+                                    <span class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold uppercase tracking-wider">{{ str_replace('_', ' ', $successfulTxn->payment_method) }}</span>
+                                    <a href="{{ route('transactions.show', $successfulTxn) }}" class="text-xs text-emerald-800 hover:text-emerald-950 font-bold underline ml-auto flex items-center gap-1">
+                                        View Details &rarr;
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @elseif($activeTxn)
+                        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 flex items-start gap-4 shadow-sm">
+                            <div class="p-2 bg-blue-100 text-blue-600 rounded-xl flex-shrink-0 mt-0.5">
+                                <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            </div>
+                            <div class="flex-1">
+                                <h5 class="text-sm font-bold text-blue-800">Checkout Session Active</h5>
+                                <p class="text-xs text-blue-600 mt-1 font-medium">A payment transaction has been initiated and is currently in the <strong>{{ $activeTxn->status }}</strong> state.</p>
+                                <div class="flex items-center gap-4 mt-3">
+                                    <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-mono font-bold">REF: {{ $activeTxn->transaction_reference }}</span>
+                                    <a href="{{ route('transactions.checkout', $activeTxn) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold shadow-sm shadow-blue-500/20 hover:scale-[1.02] transition-transform ml-auto">
+                                        💳 Resume Checkout &rarr;
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Linked Transaction History --}}
                     <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                         <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -269,6 +309,24 @@
                             <span class="text-sm font-bold text-slate-700">Net Salary</span>
                             <span class="font-black text-emerald-600 font-mono text-lg">₹{{ number_format($payroll->net_salary, 0) }}</span>
                         </div>
+
+                        @if($successfulTxn)
+                            <div class="flex flex-col gap-1.5 py-3 border-t border-slate-100 mt-2 bg-emerald-50/50 px-3.5 py-2.5 rounded-xl border border-emerald-100">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-bold text-emerald-800">✓ Paid via Gateway</span>
+                                    <span class="text-[10px] text-emerald-600 font-mono font-bold">{{ $successfulTxn->paid_at ? $successfulTxn->paid_at->format('d M Y') : 'N/A' }}</span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 font-mono font-medium block">ID: {{ $successfulTxn->transaction_reference }}</span>
+                            </div>
+                        @elseif($activeTxn)
+                            <div class="flex flex-col gap-1.5 py-3 border-t border-slate-100 mt-2 bg-blue-50/50 px-3.5 py-2.5 rounded-xl border border-blue-100">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-bold text-blue-800">💳 Payment Initiated</span>
+                                    <span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider font-mono text-[9px]">{{ $activeTxn->status }}</span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 font-mono font-medium block">ID: {{ $activeTxn->transaction_reference }}</span>
+                            </div>
+                        @endif
                     </div>
 
                     {{-- Payroll Status Stepper --}}
