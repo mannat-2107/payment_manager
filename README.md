@@ -103,4 +103,4 @@ php artisan payments:run
 *   `app/Http/Controllers/` — Core route orchestration (Leave Management, Revisions, Employees, Payroll, Documents).
 *   `app/Services/PayrollService.php` — Core financial engine containing the custom leave deduction math.
 *   `app/Observers/SalaryStructureObserver.php` — Database observer logging changes to historical revisions.
-*   `resources/views/` — Blade layout files applying the premium **Slate & Teal** dashboard theme.
+*   `resources/views/` — Blade layout files applying the premium **Slate & Teal** dashboard theme....
